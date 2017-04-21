@@ -1,3 +1,5 @@
+#define R_NO_REMAP
+
 #include <R.h>
 #include <Rdefines.h>
 #include <R_ext/Rdynload.h>
@@ -20,14 +22,14 @@ SEXP read_png (SEXP file_)
     if (error)
     {
         free(png);
-        REprintf("LodePNG error: %s\n", error, lodepng_error_text(error));
+        Rf_error("LodePNG error: %s\n", lodepng_error_text(error));
     }
     
     error = lodepng_inspect(&width, &height, &state, png, png_size);
     if (error)
     {
         free(png);
-        REprintf("LodePNG error: %s\n", error, lodepng_error_text(error));
+        Rf_error("LodePNG error: %s\n", lodepng_error_text(error));
     }
     
     switch (state.info_png.color.colortype)
@@ -64,7 +66,7 @@ SEXP read_png (SEXP file_)
     if (error)
     {
         free(image);
-        REprintf("LodePNG error: %s\n", error, lodepng_error_text(error));
+        Rf_error("LodePNG error: %s\n", lodepng_error_text(error));
     }
     
     // LodePNG returns pixel data with dimensions reversed relative to R, so we need to correct it back
@@ -88,7 +90,7 @@ SEXP read_png (SEXP file_)
     dim_ptr[0] = height;
     dim_ptr[1] = width;
     dim_ptr[2] = channels;
-    setAttrib(result, R_DimSymbol, dim);
+    Rf_setAttrib(result, R_DimSymbol, dim);
     
     UNPROTECT(2);
     return result;
@@ -96,6 +98,39 @@ SEXP read_png (SEXP file_)
 
 SEXP write_png (SEXP image_, SEXP file_)
 {
+    unsigned error;
+    unsigned width, height, channels;
+    unsigned char *png, *image;
+    size_t png_size;
+    LodePNGState state;
+    
+    SEXP dim = Rf_getAttrib(image_, R_DimSymbol);
+    if (Rf_isNull(dim))
+        Rf_error("Image does not have a \"dim\" attribute");
+    int *dim_ptr = INTEGER(dim);
+    height = dim_ptr[0];
+    width = dim_ptr[1];
+    if (Rf_length(dim) < 3)
+        channels = 1;
+    else
+        channels = dim_ptr[2];
+    
+    image = (unsigned char *) R_alloc((size_t) height * width * channels, 1);
+    int image_type = TYPEOF(image_);
+    
+    lodepng_state_init(&state);
+    /*optionally customize the state*/
+    
+    error = lodepng_encode(&png, &png_size, image, width, height, &state);
+    const char *filename = CHAR(STRING_ELT(file_, 0));
+    if(!error) lodepng_save_file(png, png_size, filename);
+    
+    /*if there's an error, display it*/
+    if(error) printf("error %u: %s\n", error, lodepng_error_text(error));
+    
+    lodepng_state_cleanup(&state);
+    free(png);
+    
     return R_NilValue;
 }
 
