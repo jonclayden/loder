@@ -1,0 +1,23 @@
+context("Reading image data from different PNG subformats")
+
+test_that("we can read from PNG images in different subformats", {
+    path <- system.file("extdata", "pngsuite", package="loder")
+    
+    expect_equal(readPng(file.path(path,"basn0g01.png"))[16,16,], 255L)
+    expect_equal(readPng(file.path(path,"basn0g02.png"))[16,16,], 170L)
+    expect_equal(readPng(file.path(path,"basn0g04.png"))[16,16,], 102L)
+    expect_equal(readPng(file.path(path,"basn0g08.png"))[16,16,], 15L)
+    expect_equal(readPng(file.path(path,"basn0g16.png"))[16,16,], 165L)
+    expect_equal(readPng(file.path(path,"basn2c08.png"))[16,16,], c(255L,16L,255L))
+    expect_equal(readPng(file.path(path,"basn2c16.png"))[16,16,], c(132L,132L,0L))
+    expect_equal(readPng(file.path(path,"basn3p01.png"))[16,16,], c(238L,255L,34L,255L))
+    expect_equal(readPng(file.path(path,"basn3p02.png"))[16,16,], c(0L,0L,255L,255L))
+    expect_equal(readPng(file.path(path,"basn3p04.png"))[16,16,], c(0L,255L,68L,255L))
+    expect_equal(readPng(file.path(path,"basn3p08.png"))[16,16,], c(123L,254L,0L,255L))
+    expect_equal(readPng(file.path(path,"basn4a08.png"))[16,16,], c(131L,123L))
+    expect_equal(readPng(file.path(path,"basn4a16.png"))[16,16,], c(0L,247L))
+    expect_equal(readPng(file.path(path,"basn6a08.png"))[16,16,], c(32L,255L,4L,123L))
+    expect_equal(readPng(file.path(path,"basn6a16.png"))[16,16,], c(255L,255L,0L,247L))
+    expect_equal(readPng(file.path(path,"basi6a08.png"))[16,16,], c(32L,255L,4L,123L))
+    expect_equal(readPng(file.path(path,"z03n2c08.png"))[16,16,], c(132L,132L,0L))
+})
