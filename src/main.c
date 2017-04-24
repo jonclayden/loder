@@ -99,11 +99,7 @@ SEXP read_png (SEXP file_)
 
 SEXP write_png (SEXP image_, SEXP file_)
 {
-    unsigned error;
     unsigned width, height, channels;
-    unsigned char *png, *image;
-    size_t png_size;
-    LodePNGState state;
     
     SEXP dim = Rf_getAttrib(image_, R_DimSymbol);
     if (Rf_isNull(dim))
@@ -116,18 +112,146 @@ SEXP write_png (SEXP image_, SEXP file_)
     else
         channels = dim_ptr[2];
     
-    image = (unsigned char *) R_alloc((size_t) height * width * channels, 1);
-    int image_type = TYPEOF(image_);
+    void *image_ptr;
+    const int image_type = TYPEOF(image_);
+    if (image_type == INTSXP || image_type == LGLSXP)
+        image_ptr = (void *) INTEGER(image_);
+    else if (image_type == REALSXP)
+        image_ptr = (void *) REAL(image_);
+    else
+        Rf_error("Image data must be numeric or logical");
+    
+    
+    double min = R_PosInf, max = R_NegInf;
+    Rboolean add_alpha = FALSE;
+    R_len_t length = (R_len_t) width * height * channels;
+    double *dbl_data = (double *) R_alloc(length, sizeof(double));
+    double *dbl_data_ptr = dbl_data;
+    
+    for (R_len_t l=0; l<length; l++)
+    {
+        if (image_type == LGLSXP)
+        {
+            const int value = ((int *) image_ptr)[l];
+            const Rboolean is_na = (value == NA_LOGICAL);
+            if (is_na)
+            {
+                if (!add_alpha && channels % 2 == 1)
+                    add_alpha = TRUE;
+                *dbl_data_ptr++ = NA_REAL;
+            }
+            else
+                *dbl_data_ptr++ = (double) value;
+        }
+        else if (image_type == REALSXP)
+        {
+            const double value = ((double *) image_ptr)[l];
+            const Rboolean is_na = ISNA(value);
+            if (is_na)
+            {
+                if (!add_alpha && channels % 2 == 1)
+                    add_alpha = TRUE;
+                *dbl_data_ptr++ = NA_REAL;
+            }
+            else
+            {
+                if (value < min)
+                    min = value;
+                if (value > max)
+                    max = value;
+                *dbl_data_ptr++ = value;
+            }
+        }
+        else
+        {
+            const int value = ((int *) image_ptr)[l];
+            const Rboolean is_na = (value == NA_INTEGER);
+            if (is_na)
+            {
+                if (!add_alpha && channels % 2 == 1)
+                    add_alpha = TRUE;
+                *dbl_data_ptr++ = NA_REAL;
+            }
+            else
+            {
+                if ((double) value < min)
+                    min = (double) value;
+                if ((double) value > max)
+                    max = (double) value;
+                *dbl_data_ptr++ = (double) value;
+            }
+        }
+    }
+    
+    if (image_type == LGLSXP)
+    {
+        min = 0.0;
+        max = 255.0;
+    }
+    else if (min != R_PosInf && max == R_NegInf)
+    {
+        max = min;
+        Rf_warning("Image is totally flat");
+    }
+    
+    // if (add_alpha)
+    //     channels++;
+    
+    double range = max - min;
+    unsigned error;
+    unsigned char *png = NULL, *data;
+    size_t png_size = (size_t) height * width * channels;
+    LodePNGState state;
+    
+    data = (unsigned char *) R_alloc(png_size, 1);
+    unsigned char *data_ptr = data;
+    size_t image_stride = (size_t) height * width;
+    size_t data_offset;
+    for (unsigned i=0; i<height; i++)
+    {
+        for (unsigned j=0; j<width; j++)
+        {
+            data_offset = j * height;
+            for (unsigned k=0; k<channels; k++)
+                *data_ptr++ = (unsigned char) round((dbl_data[i+data_offset+k*image_stride] - min) / range * 255.0);
+        }
+    }
     
     lodepng_state_init(&state);
-    /*optionally customize the state*/
     
-    error = lodepng_encode(&png, &png_size, image, width, height, &state);
+    switch (channels)
+    {
+        case 1:
+        state.info_raw.colortype = LCT_GREY;
+        break;
+        
+        case 2:
+        state.info_raw.colortype = LCT_GREY_ALPHA;
+        break;
+        
+        case 3:
+        state.info_raw.colortype = LCT_RGB;
+        break;
+        
+        case 4:
+        state.info_raw.colortype = LCT_RGBA;
+        break;
+    }
+    
     const char *filename = CHAR(STRING_ELT(file_, 0));
-    if(!error) lodepng_save_file(png, png_size, filename);
+    error = lodepng_encode(&png, &png_size, data, width, height, &state);
+    if (error)
+    {
+        free(png);
+        Rf_error("LodePNG error: %s\n", lodepng_error_text(error));
+    }
     
-    /*if there's an error, display it*/
-    if(error) printf("error %u: %s\n", error, lodepng_error_text(error));
+    lodepng_save_file(png, png_size, filename);
+    if (error)
+    {
+        free(png);
+        Rf_error("LodePNG error: %s\n", lodepng_error_text(error));
+    }
     
     lodepng_state_cleanup(&state);
     free(png);
