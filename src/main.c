@@ -10,9 +10,8 @@ SEXP read_png (SEXP file_)
 {
     unsigned error;
     unsigned width, height, channels;
-    unsigned char *png = NULL;
+    unsigned char *png = NULL, *data;
     size_t png_size;
-    unsigned char *image;
     LodePNGState state;
     
     lodepng_state_init(&state);
@@ -53,48 +52,48 @@ SEXP read_png (SEXP file_)
     }
     
     R_len_t length;
-    SEXP result, dim;
+    SEXP image, dim;
     length = (R_len_t) width * height * channels;
-    PROTECT(result = NEW_INTEGER(length));
+    PROTECT(image = NEW_INTEGER(length));
     
     LodePNGColorType final_color_type = (state.info_png.color.colortype == LCT_PALETTE ? LCT_RGBA : state.info_png.color.colortype);
-    error = lodepng_decode_memory(&image, &width, &height, png, png_size, final_color_type, 8);
+    error = lodepng_decode_memory(&data, &width, &height, png, png_size, final_color_type, 8);
     free(png);
     if (error)
     {
-        free(image);
+        free(data);
         Rf_error("LodePNG error: %s\n", lodepng_error_text(error));
     }
     
     // LodePNG returns pixel data with dimensions reversed relative to R, so we need to correct it back
-    int *result_ptr = INTEGER(result);
-    size_t result_strides[2] = { (size_t) height, (size_t) height * width };
-    size_t image_strides[2] = { (size_t) channels, (size_t) channels * width };
-    size_t result_offset, image_offset;
+    int *image_ptr = INTEGER(image);
+    size_t image_strides[2] = { (size_t) height, (size_t) height * width };
+    size_t data_strides[2] = { (size_t) channels, (size_t) channels * width };
+    size_t image_offset, data_offset;
     for (unsigned i=0; i<height; i++)
     {
-        image_offset = i * image_strides[1];
+        data_offset = i * data_strides[1];
         for (unsigned j=0; j<width; j++)
         {
-            result_offset = j * result_strides[0];
+            image_offset = j * image_strides[0];
             for (unsigned k=0; k<channels; k++)
-                result_ptr[i+result_offset+k*result_strides[1]] = (int) image[k+image_offset];
-            image_offset += image_strides[0];
+                image_ptr[i+image_offset+k*image_strides[1]] = (int) data[k+data_offset];
+            data_offset += data_strides[0];
         }
     }
     
     lodepng_state_cleanup(&state);
-    free(image);
+    free(data);
     
     PROTECT(dim = NEW_INTEGER(3));
     int *dim_ptr = INTEGER(dim);
     dim_ptr[0] = height;
     dim_ptr[1] = width;
     dim_ptr[2] = channels;
-    Rf_setAttrib(result, R_DimSymbol, dim);
+    Rf_setAttrib(image, R_DimSymbol, dim);
     
     UNPROTECT(2);
-    return result;
+    return image;
 }
 
 SEXP write_png (SEXP image_, SEXP file_)
