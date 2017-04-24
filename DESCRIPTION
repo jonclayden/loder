@@ -1,5 +1,5 @@
 Package: loder
-Title: An R Interface to the LodePNG Library
+Title: Dependency-Free Access to PNG Image Files
 Version: 0.1.0
 Authors@R: c(person("Jon", "Clayden", email="code@clayden.org", role=c("aut","cre")),
              person("Lode", "Vandevenne", role="aut"))
