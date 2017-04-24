@@ -10,7 +10,7 @@ SEXP read_png (SEXP file_)
 {
     unsigned error;
     unsigned width, height, channels;
-    unsigned char *png = NULL, *data;
+    unsigned char *png = NULL, *data = NULL;
     size_t png_size;
     LodePNGState state;
     
@@ -52,12 +52,14 @@ SEXP read_png (SEXP file_)
     }
     
     R_len_t length;
-    SEXP image, dim;
+    SEXP image, dim, range, class, asp, dpi, pixdim;
+    char background[8] = "";
     length = (R_len_t) width * height * channels;
     PROTECT(image = NEW_INTEGER(length));
     
-    LodePNGColorType final_color_type = (state.info_png.color.colortype == LCT_PALETTE ? LCT_RGBA : state.info_png.color.colortype);
-    error = lodepng_decode_memory(&data, &width, &height, png, png_size, final_color_type, 8);
+    state.info_raw.colortype = (state.info_png.color.colortype == LCT_PALETTE ? LCT_RGBA : state.info_png.color.colortype);
+    state.info_raw.bitdepth = 8;
+    error = lodepng_decode(&data, &width, &height, &state, png, png_size);
     free(png);
     if (error)
     {
@@ -82,9 +84,6 @@ SEXP read_png (SEXP file_)
         }
     }
     
-    lodepng_state_cleanup(&state);
-    free(data);
-    
     PROTECT(dim = NEW_INTEGER(3));
     int *dim_ptr = INTEGER(dim);
     dim_ptr[0] = height;
@@ -92,7 +91,50 @@ SEXP read_png (SEXP file_)
     dim_ptr[2] = channels;
     Rf_setAttrib(image, R_DimSymbol, dim);
     
-    UNPROTECT(2);
+    PROTECT(class = NEW_CHARACTER(2));
+    SET_STRING_ELT(class, 0, Rf_mkChar("loder"));
+    SET_STRING_ELT(class, 1, Rf_mkChar("array"));
+    Rf_setAttrib(image, R_ClassSymbol, class);
+    
+    PROTECT(range = NEW_INTEGER(2));
+    INTEGER(range)[0] = 0;
+    INTEGER(range)[1] = 255;
+    Rf_setAttrib(image, Rf_install("range"), range);
+    
+    if (state.info_png.background_defined)
+    {
+        sprintf(background, "#%X%X%X", state.info_png.background_r, state.info_png.background_g, state.info_png.background_b);
+        Rf_setAttrib(image, Rf_install("background"), Rf_mkString(background));
+    }
+    
+    if (state.info_png.phys_defined)
+    {
+        if (state.info_png.phys_unit == 0)
+        {
+            PROTECT(asp = NEW_NUMERIC(1));
+            *REAL(asp) = (double) state.info_png.phys_y / (double) state.info_png.phys_x;
+            Rf_setAttrib(image, Rf_install("asp"), asp);
+            UNPROTECT(1);
+        }
+        else
+        {
+            PROTECT(dpi = NEW_NUMERIC(2));
+            PROTECT(pixdim = NEW_NUMERIC(2));
+            REAL(dpi)[0] = (double) state.info_png.phys_x / 39.3700787402;
+            REAL(dpi)[1] = (double) state.info_png.phys_y / 39.3700787402;
+            REAL(pixdim)[0] = 1000.0 / (double) state.info_png.phys_x;
+            REAL(pixdim)[1] = 1000.0 / (double) state.info_png.phys_y;
+            Rf_setAttrib(image, Rf_install("dpi"), dpi);
+            Rf_setAttrib(image, Rf_install("pixdim"), pixdim);
+            Rf_setAttrib(image, Rf_install("pixunits"), Rf_mkString("mm"));
+            UNPROTECT(2);
+        }
+    }
+    
+    lodepng_state_cleanup(&state);
+    free(data);
+    
+    UNPROTECT(4);
     return image;
 }
 
