@@ -38,18 +38,15 @@ SEXP read_png (SEXP file_)
         channels = 1;
         break;
         
+        case LCT_GREY_ALPHA:
+        channels = 2;
+        break;
+        
         case LCT_RGB:
         channels = 3;
         break;
         
         case LCT_PALETTE:
-        channels = 4;
-        break;
-        
-        case LCT_GREY_ALPHA:
-        channels = 2;
-        break;
-        
         case LCT_RGBA:
         channels = 4;
         break;
@@ -73,12 +70,16 @@ SEXP read_png (SEXP file_)
     int *result_ptr = INTEGER(result);
     size_t result_strides[2] = { (size_t) height, (size_t) height * width };
     size_t image_strides[2] = { (size_t) channels, (size_t) channels * width };
+    size_t result_offset, image_offset;
     for (unsigned i=0; i<height; i++)
     {
+        image_offset = i * image_strides[1];
         for (unsigned j=0; j<width; j++)
         {
+            result_offset = j * result_strides[0];
             for (unsigned k=0; k<channels; k++)
-                result_ptr[i+j*result_strides[0]+k*result_strides[1]] = (int) image[k+j*image_strides[0]+i*image_strides[1]];
+                result_ptr[i+result_offset+k*result_strides[1]] = (int) image[k+image_offset];
+            image_offset += image_strides[0];
         }
     }
     
