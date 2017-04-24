@@ -14,8 +14,10 @@ SEXP read_png (SEXP file_)
     size_t png_size;
     LodePNGState state;
     
+    // Initialise the state object
     lodepng_state_init(&state);
     
+    // Read the file into memory
     const char *filename = CHAR(STRING_ELT(file_, 0));
     error = lodepng_load_file(&png, &png_size, filename);
     if (error)
@@ -24,6 +26,7 @@ SEXP read_png (SEXP file_)
         Rf_error("LodePNG error: %s\n", lodepng_error_text(error));
     }
     
+    // Read basic metadata from the image blob
     error = lodepng_inspect(&width, &height, &state, png, png_size);
     if (error)
     {
@@ -31,6 +34,7 @@ SEXP read_png (SEXP file_)
         Rf_error("LodePNG error: %s\n", lodepng_error_text(error));
     }
     
+    // Figure out the number of channels
     switch (state.info_png.color.colortype)
     {
         case LCT_GREY:
@@ -51,12 +55,14 @@ SEXP read_png (SEXP file_)
         break;
     }
     
+    // Allocate memory for the final image
     R_len_t length;
     SEXP image, dim, range, class, asp, dpi, pixdim;
     char background[8] = "";
     length = (R_len_t) width * height * channels;
     PROTECT(image = NEW_INTEGER(length));
     
+    // Set the required colour type and bit depth, and decode the blob
     state.info_raw.colortype = (state.info_png.color.colortype == LCT_PALETTE ? LCT_RGBA : state.info_png.color.colortype);
     state.info_raw.bitdepth = 8;
     error = lodepng_decode(&data, &width, &height, &state, png, png_size);
@@ -84,6 +90,7 @@ SEXP read_png (SEXP file_)
         }
     }
     
+    // Set the image dimensions
     PROTECT(dim = NEW_INTEGER(3));
     int *dim_ptr = INTEGER(dim);
     dim_ptr[0] = height;
@@ -91,22 +98,27 @@ SEXP read_png (SEXP file_)
     dim_ptr[2] = channels;
     Rf_setAttrib(image, R_DimSymbol, dim);
     
+    // Set the object class
     PROTECT(class = NEW_CHARACTER(2));
     SET_STRING_ELT(class, 0, Rf_mkChar("loder"));
     SET_STRING_ELT(class, 1, Rf_mkChar("array"));
     Rf_setAttrib(image, R_ClassSymbol, class);
     
+    // Set the theoretical range of the data
     PROTECT(range = NEW_INTEGER(2));
     INTEGER(range)[0] = 0;
     INTEGER(range)[1] = 255;
     Rf_setAttrib(image, Rf_install("range"), range);
     
+    // If a background colour is defined in the file, convert it to a hex code
+    // and store it
     if (state.info_png.background_defined)
     {
         sprintf(background, "#%X%X%X", state.info_png.background_r, state.info_png.background_g, state.info_png.background_b);
         Rf_setAttrib(image, Rf_install("background"), Rf_mkString(background));
     }
     
+    // Set the aspect ratio or DPI/pixel size if available
     if (state.info_png.phys_defined)
     {
         if (state.info_png.phys_unit == 0)
@@ -131,6 +143,7 @@ SEXP read_png (SEXP file_)
         }
     }
     
+    // Tidy up
     lodepng_state_cleanup(&state);
     free(data);
     
@@ -142,6 +155,7 @@ SEXP write_png (SEXP image_, SEXP file_)
 {
     unsigned width, height, channels;
     
+    // Read the image dimensions from the source object
     SEXP dim = Rf_getAttrib(image_, R_DimSymbol);
     if (Rf_isNull(dim))
         Rf_error("Image does not have a \"dim\" attribute");
@@ -153,6 +167,7 @@ SEXP write_png (SEXP image_, SEXP file_)
     else
         channels = dim_ptr[2];
     
+    // Obtain a pointer to the data and check its type
     void *image_ptr;
     const int image_type = TYPEOF(image_);
     if (image_type == INTSXP || image_type == LGLSXP)
@@ -162,13 +177,14 @@ SEXP write_png (SEXP image_, SEXP file_)
     else
         Rf_error("Image data must be numeric or logical");
     
-    
+    // Allocate memory for a standardised double-precision version of the data
     double min = R_PosInf, max = R_NegInf;
     Rboolean add_alpha = FALSE;
     R_len_t length = (R_len_t) width * height * channels;
     double *dbl_data = (double *) R_alloc(length, sizeof(double));
     double *dbl_data_ptr = dbl_data;
     
+    // Convert to double, check for NAs and find the min and max in the image
     for (R_len_t l=0; l<length; l++)
     {
         if (image_type == LGLSXP)
@@ -224,16 +240,14 @@ SEXP write_png (SEXP image_, SEXP file_)
         }
     }
     
+    // We don't want logical data to have its value changed
     if (image_type == LGLSXP)
     {
         min = 0.0;
         max = 255.0;
     }
-    else if (min != R_PosInf && max == R_NegInf)
-    {
-        max = min;
+    else if (min == max)
         Rf_warning("Image is totally flat");
-    }
     
     // if (add_alpha)
     //     channels++;
@@ -244,6 +258,7 @@ SEXP write_png (SEXP image_, SEXP file_)
     size_t png_size = (size_t) height * width * channels;
     LodePNGState state;
     
+    // Convert to final unsigned char form, quantising as necessary
     data = (unsigned char *) R_alloc(png_size, 1);
     unsigned char *data_ptr = data;
     size_t image_stride = (size_t) height * width;
@@ -258,8 +273,10 @@ SEXP write_png (SEXP image_, SEXP file_)
         }
     }
     
+    // Initialise the state object
     lodepng_state_init(&state);
     
+    // Set the final data representation
     switch (channels)
     {
         case 1:
@@ -279,6 +296,7 @@ SEXP write_png (SEXP image_, SEXP file_)
         break;
     }
     
+    // Encode the data in memory
     const char *filename = CHAR(STRING_ELT(file_, 0));
     error = lodepng_encode(&png, &png_size, data, width, height, &state);
     if (error)
@@ -287,6 +305,7 @@ SEXP write_png (SEXP image_, SEXP file_)
         Rf_error("LodePNG error: %s\n", lodepng_error_text(error));
     }
     
+    // Save to file
     lodepng_save_file(png, png_size, filename);
     if (error)
     {
@@ -294,6 +313,7 @@ SEXP write_png (SEXP image_, SEXP file_)
         Rf_error("LodePNG error: %s\n", lodepng_error_text(error));
     }
     
+    // Tidy up
     lodepng_state_cleanup(&state);
     free(png);
     
