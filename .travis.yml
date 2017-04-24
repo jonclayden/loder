@@ -1,0 +1,4 @@
+# Standard .travis.yml for R projects
+
+language: r
+
