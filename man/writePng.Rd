@@ -4,12 +4,15 @@
 \alias{writePng}
 \title{Write a PNG file}
 \usage{
-writePng(image, file)
+writePng(image, file, range = NULL)
 }
 \arguments{
 \item{image}{An array containing the pixel data.}
 
 \item{file}{A character string giving the file name to write to.}
+
+\item{range}{An optional numeric 2-vector giving the extremes of the
+intensity window.}
 }
 \description{
 Write a numeric or logical array to a PNG file.

@@ -17,9 +17,11 @@ readPng <- function (file)
 #' 
 #' @param image An array containing the pixel data.
 #' @param file A character string giving the file name to write to.
+#' @param range An optional numeric 2-vector giving the extremes of the
+#'   intensity window.
 #' 
 #' @export
-writePng <- function (image, file)
+writePng <- function (image, file, range = NULL)
 {
-    invisible (.Call(C_write_png, image, file))
+    invisible (.Call(C_write_png, image, file, range))
 }

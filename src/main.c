@@ -151,7 +151,7 @@ SEXP read_png (SEXP file_)
     return image;
 }
 
-SEXP write_png (SEXP image_, SEXP file_)
+SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
 {
     unsigned width, height, channels;
     
@@ -179,10 +179,24 @@ SEXP write_png (SEXP image_, SEXP file_)
     
     // Allocate memory for a standardised double-precision version of the data
     double min = R_PosInf, max = R_NegInf;
-    Rboolean add_alpha = FALSE;
+    Rboolean have_range = FALSE, add_alpha = FALSE;
     R_len_t length = (R_len_t) width * height * channels;
     double *dbl_data = (double *) R_alloc(length, sizeof(double));
     double *dbl_data_ptr = dbl_data;
+    
+    // Check for a range argument or attribute
+    SEXP range;
+    if (Rf_isNull(range_))
+        range_ = Rf_getAttrib(image_, Rf_install("range"));
+    if (!Rf_isNull(range_) && Rf_length(range_) == 2)
+    {
+        PROTECT(range = Rf_coerceVector(range_, REALSXP));
+        double *range_ptr = REAL(range);
+        min = (range_ptr[0] < range_ptr[1] ? range_ptr[0] : range_ptr[1]);
+        max = (range_ptr[0] > range_ptr[1] ? range_ptr[0] : range_ptr[1]);
+        have_range = TRUE;
+        UNPROTECT(1);
+    }
     
     // Convert to double, check for NAs and find the min and max in the image
     for (R_len_t l=0; l<length; l++)
@@ -212,9 +226,9 @@ SEXP write_png (SEXP image_, SEXP file_)
             }
             else
             {
-                if (value < min)
+                if (!have_range && value < min)
                     min = value;
-                if (value > max)
+                if (!have_range && value > max)
                     max = value;
                 *dbl_data_ptr++ = value;
             }
@@ -231,9 +245,9 @@ SEXP write_png (SEXP image_, SEXP file_)
             }
             else
             {
-                if ((double) value < min)
+                if (!have_range && (double) value < min)
                     min = (double) value;
-                if ((double) value > max)
+                if (!have_range && (double) value > max)
                     max = (double) value;
                 *dbl_data_ptr++ = (double) value;
             }
@@ -252,7 +266,7 @@ SEXP write_png (SEXP image_, SEXP file_)
     // if (add_alpha)
     //     channels++;
     
-    double range = max - min;
+    double range_width = max - min;
     unsigned error;
     unsigned char *png = NULL, *data;
     size_t png_size = (size_t) height * width * channels;
@@ -269,7 +283,7 @@ SEXP write_png (SEXP image_, SEXP file_)
         {
             data_offset = j * height;
             for (unsigned k=0; k<channels; k++)
-                *data_ptr++ = (unsigned char) round((dbl_data[i+data_offset+k*image_stride] - min) / range * 255.0);
+                *data_ptr++ = (unsigned char) round((dbl_data[i+data_offset+k*image_stride] - min) / range_width * 255.0);
         }
     }
     
