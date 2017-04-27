@@ -336,7 +336,7 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
 
 static R_CallMethodDef callMethods[] = {
     { "read_png",   (DL_FUNC) &read_png,    1 },
-    { "write_png",  (DL_FUNC) &write_png,   2 },
+    { "write_png",  (DL_FUNC) &write_png,   3 },
     { NULL, NULL, 0 }
 };
 
