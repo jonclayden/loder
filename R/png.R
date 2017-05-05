@@ -23,5 +23,6 @@ readPng <- function (file)
 #' @export
 writePng <- function (image, file, range = NULL)
 {
-    invisible (.Call(C_write_png, image, file, range))
+    .Call(C_write_png, image, file, range)
+    invisible(file)
 }
