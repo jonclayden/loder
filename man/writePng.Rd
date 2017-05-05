@@ -12,8 +12,23 @@ writePng(image, file, range = NULL)
 \item{file}{A character string giving the file name to write to.}
 
 \item{range}{An optional numeric 2-vector giving the extremes of the
-intensity window.}
+intensity window. Values outside this range will be clipped.}
+}
+\value{
+The \code{file} argument, invisibly.
 }
 \description{
 Write a numeric or logical array to a PNG file.
+}
+\details{
+The LodePNG library is used to write a PNG file at the specified path. The
+source data should be of logical, integer or numeric mode. The allowable
+range of the data will be taken from the \code{range} argument if it is
+specified, or from a \code{range} attribute, if there is one, and otherwise
+it is calculated from the data. Background colour, spatial resolution and/or
+aspect ratio metadata are written to the file if the corresponding
+attributes exist. LodePNG will choose the bit depth of the final image.
+}
+\seealso{
+\code{\link{readPng}} for reading images.
 }

@@ -10,8 +10,27 @@ readPng(file)
 \item{file}{A character string giving the file name to read from.}
 }
 \value{
-An array of class \code{"loder"}.
+An integer-mode array of class \code{"loder"}.
 }
 \description{
 Read an image from a PNG file and convert the pixel data into an R array.
+}
+\details{
+The LodePNG library is used to read the PNG file at the specified path.
+LodePNG can handle a wide variety of subformats and bit depths, but the
+output of this function is currently standardised to an integer-mode array
+with 8-bit range, i.e. between 0 and 255. Attributes specifying the
+background colour, spatial resolution and/or aspect ratio are attached to
+the result if this information is stored with the image.
+}
+\examples{
+path <- system.file("extdata", "pngsuite", package="loder")
+image <- readPng(file.path(path, "basn6a08.png"))
+attributes(image)
+
+}
+\seealso{
+The \code{readPNG} function in the venerable \code{png} package
+  offers similar functionality, but relies on an external installation of
+  libpng. By contrast, \code{loder} includes the LodePNG library.
 }
