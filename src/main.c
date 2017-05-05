@@ -167,7 +167,7 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
     else
         channels = dim_ptr[2];
     
-    // Obtain a pointer to the data and check its type
+    // Check that the image data is numeric, then coerce it to double
     const int image_type = TYPEOF(image_);
     SEXP image;
     double *image_ptr;
@@ -176,12 +176,11 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
     PROTECT(image = Rf_coerceVector(image_, REALSXP));
     image_ptr = REAL(image);
     
-    // Allocate memory for a standardised double-precision version of the data
     double min = R_PosInf, max = R_NegInf;
     Rboolean add_alpha = FALSE;
     R_len_t length = (R_len_t) width * height * channels;
     
-    // Check for a range argument or attribute
+    // Check for a range argument or attribute, or calculate range from data
     SEXP range;
     if (Rf_isNull(range_))
         range_ = Rf_getAttrib(image_, Rf_install("range"));
@@ -268,6 +267,40 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
         break;
     }
     
+    // Check for a background attribute and attach it to the state if present
+    SEXP background = Rf_getAttrib(image_, Rf_install("background"));
+    if (!Rf_isNull(background))
+    {
+        long value = strtol(CHAR(STRING_ELT(background,0))+1, NULL, 16);
+        if (value > 0)
+        {
+            state.info_png.background_defined = 1;
+            state.info_png.background_r = (unsigned) (value & 0xff0000) >> 16;
+            state.info_png.background_g = (unsigned) (value & 0x00ff00) >> 8;
+            state.info_png.background_b = (unsigned) (value & 0x0000ff);
+        }
+    }
+    
+    // Check for a DPI or aspect ratio attribute (in that order of preference)
+    SEXP dpi = Rf_getAttrib(image_, Rf_install("dpi"));
+    SEXP asp = Rf_getAttrib(image_, Rf_install("asp"));
+    if (!Rf_isNull(dpi) && Rf_length(dpi) == 2)
+    {
+        // Real units: convert DPI to pixels per metre
+        state.info_png.phys_defined = 1;
+        state.info_png.phys_unit = 1;
+        state.info_png.phys_x = (unsigned) round(REAL(dpi)[0] * 39.3700787402);
+        state.info_png.phys_y = (unsigned) round(REAL(dpi)[1] * 39.3700787402);
+    }
+    else if (!Rf_isNull(asp))
+    {
+        // Aspect ratio only: fix x size at 1000 and set y appropriately
+        state.info_png.phys_defined = 1;
+        state.info_png.phys_unit = 0;
+        state.info_png.phys_x = 1000;
+        state.info_png.phys_y = (unsigned) round(*REAL(asp) * 1000.0);
+    }
+    
     // Encode the data in memory
     const char *filename = CHAR(STRING_ELT(file_, 0));
     error = lodepng_encode(&png, &png_size, data, width, height, &state);
@@ -289,6 +322,7 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
     lodepng_state_cleanup(&state);
     free(png);
     
+    UNPROTECT(1);
     return R_NilValue;
 }
 
