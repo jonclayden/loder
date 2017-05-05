@@ -9,7 +9,7 @@
 SEXP read_png (SEXP file_)
 {
     unsigned error;
-    unsigned width, height, channels;
+    unsigned width, height, channels = 0;
     unsigned char *png = NULL, *data = NULL;
     size_t png_size;
     LodePNGState state;
