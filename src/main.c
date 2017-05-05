@@ -240,7 +240,15 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
         {
             data_offset = j * height;
             for (unsigned k=0; k<channels; k++)
-                *data_ptr++ = (unsigned char) round((image_ptr[i+data_offset+k*image_stride] - min) / range_width * 255.0);
+            {
+                const double value = round((image_ptr[i+data_offset+k*image_stride] - min) / range_width * 255.0);
+                if (value < 0.0)
+                    *data_ptr++ = 0;
+                else if (value > 255.0)
+                    *data_ptr++ = 255;
+                else
+                    *data_ptr++ = (unsigned char) value;
+            }
         }
     }
     
