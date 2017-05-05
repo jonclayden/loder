@@ -168,21 +168,18 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
         channels = dim_ptr[2];
     
     // Obtain a pointer to the data and check its type
-    void *image_ptr;
     const int image_type = TYPEOF(image_);
-    if (image_type == INTSXP || image_type == LGLSXP)
-        image_ptr = (void *) INTEGER(image_);
-    else if (image_type == REALSXP)
-        image_ptr = (void *) REAL(image_);
-    else
+    SEXP image;
+    double *image_ptr;
+    if (image_type != INTSXP && image_type != LGLSXP && image_type != REALSXP)
         Rf_error("Image data must be numeric or logical");
+    PROTECT(image = Rf_coerceVector(image_, REALSXP));
+    image_ptr = REAL(image);
     
     // Allocate memory for a standardised double-precision version of the data
     double min = R_PosInf, max = R_NegInf;
-    Rboolean have_range = FALSE, add_alpha = FALSE;
+    Rboolean add_alpha = FALSE;
     R_len_t length = (R_len_t) width * height * channels;
-    double *dbl_data = (double *) R_alloc(length, sizeof(double));
-    double *dbl_data_ptr = dbl_data;
     
     // Check for a range argument or attribute
     SEXP range;
@@ -194,73 +191,34 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
         double *range_ptr = REAL(range);
         min = (range_ptr[0] < range_ptr[1] ? range_ptr[0] : range_ptr[1]);
         max = (range_ptr[0] > range_ptr[1] ? range_ptr[0] : range_ptr[1]);
-        have_range = TRUE;
         UNPROTECT(1);
     }
-    
-    // Convert to double, check for NAs and find the min and max in the image
-    for (R_len_t l=0; l<length; l++)
-    {
-        if (image_type == LGLSXP)
-        {
-            const int value = ((int *) image_ptr)[l];
-            const Rboolean is_na = (value == NA_LOGICAL);
-            if (is_na)
-            {
-                if (!add_alpha && channels % 2 == 1)
-                    add_alpha = TRUE;
-                *dbl_data_ptr++ = NA_REAL;
-            }
-            else
-                *dbl_data_ptr++ = (double) value;
-        }
-        else if (image_type == REALSXP)
-        {
-            const double value = ((double *) image_ptr)[l];
-            const Rboolean is_na = ISNA(value);
-            if (is_na)
-            {
-                if (!add_alpha && channels % 2 == 1)
-                    add_alpha = TRUE;
-                *dbl_data_ptr++ = NA_REAL;
-            }
-            else
-            {
-                if (!have_range && value < min)
-                    min = value;
-                if (!have_range && value > max)
-                    max = value;
-                *dbl_data_ptr++ = value;
-            }
-        }
-        else
-        {
-            const int value = ((int *) image_ptr)[l];
-            const Rboolean is_na = (value == NA_INTEGER);
-            if (is_na)
-            {
-                if (!add_alpha && channels % 2 == 1)
-                    add_alpha = TRUE;
-                *dbl_data_ptr++ = NA_REAL;
-            }
-            else
-            {
-                if (!have_range && (double) value < min)
-                    min = (double) value;
-                if (!have_range && (double) value > max)
-                    max = (double) value;
-                *dbl_data_ptr++ = (double) value;
-            }
-        }
-    }
-    
-    // We don't want logical data to have its value changed
-    if (image_type == LGLSXP)
+    else if (image_type == LGLSXP)
     {
         min = 0.0;
         max = 255.0;
     }
-    else if (min == max)
+    else
+    {
+        for (R_len_t l=0; l<length; l++)
+        {
+            const double value = ((double *) image_ptr)[l];
+            if (ISNA(value))
+            {
+                if (!add_alpha && channels % 2 == 1)
+                    add_alpha = TRUE;
+            }
+            else
+            {
+                if (value < min)
+                    min = value;
+                if (value > max)
+                    max = value;
+            }
+        }
+    }
+    
+    if (min == max)
         Rf_warning("Image is totally flat");
     
     // if (add_alpha)
@@ -283,7 +241,7 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
         {
             data_offset = j * height;
             for (unsigned k=0; k<channels; k++)
-                *data_ptr++ = (unsigned char) round((dbl_data[i+data_offset+k*image_stride] - min) / range_width * 255.0);
+                *data_ptr++ = (unsigned char) round((image_ptr[i+data_offset+k*image_stride] - min) / range_width * 255.0);
         }
     }
     
