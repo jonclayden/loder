@@ -24,7 +24,7 @@
 #' @export
 readPng <- function (file)
 {
-    .Call(C_read_png, file)
+    .Call(C_read_png, path.expand(file))
 }
 
 #' Write a PNG file
@@ -50,6 +50,6 @@ readPng <- function (file)
 #' @export
 writePng <- function (image, file, range = NULL)
 {
-    .Call(C_write_png, image, file, range)
+    .Call(C_write_png, image, path.expand(file), range)
     invisible(file)
 }
