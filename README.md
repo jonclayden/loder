@@ -19,7 +19,7 @@ devtools::install_github("jonclayden/loder")
 
 ## Reading and writing files
 
-The `readPng` function is used to read PNG images. It returns an array of class `loder` with three dimensions representing rows, columns and channels. Greyscale images have one channel, grey/alpha images have two, red/green/blue (RGB) images have three, and red/green/blue/alpha image have four.
+The `readPng` function is used to read PNG images. It returns an array of class `loder` with three dimensions representing rows, columns and channels. Greyscale images have one channel, grey/alpha images have two, red/green/blue (RGB) images have three, and red/green/blue/alpha images have four.
 
 ```r
 library(loder)
