@@ -1,7 +1,7 @@
 #define R_NO_REMAP
 
 #include <R.h>
-#include <Rdefines.h>
+#include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 
 #include "lodepng.h"
@@ -60,7 +60,7 @@ SEXP read_png (SEXP file_)
     SEXP image, dim, range, class, asp, dpi, pixdim;
     char background[8] = "";
     length = (R_len_t) width * height * channels;
-    PROTECT(image = NEW_INTEGER(length));
+    PROTECT(image = Rf_allocVector(INTSXP,length));
     
     // Set the required colour type and bit depth, and decode the blob
     state.info_raw.colortype = (state.info_png.color.colortype == LCT_PALETTE ? LCT_RGBA : state.info_png.color.colortype);
@@ -91,7 +91,7 @@ SEXP read_png (SEXP file_)
     }
     
     // Set the image dimensions
-    PROTECT(dim = NEW_INTEGER(3));
+    PROTECT(dim = Rf_allocVector(INTSXP,3));
     int *dim_ptr = INTEGER(dim);
     dim_ptr[0] = height;
     dim_ptr[1] = width;
@@ -99,13 +99,13 @@ SEXP read_png (SEXP file_)
     Rf_setAttrib(image, R_DimSymbol, dim);
     
     // Set the object class
-    PROTECT(class = NEW_CHARACTER(2));
+    PROTECT(class = Rf_allocVector(STRSXP,2));
     SET_STRING_ELT(class, 0, Rf_mkChar("loder"));
     SET_STRING_ELT(class, 1, Rf_mkChar("array"));
     Rf_setAttrib(image, R_ClassSymbol, class);
     
     // Set the theoretical range of the data
-    PROTECT(range = NEW_INTEGER(2));
+    PROTECT(range = Rf_allocVector(INTSXP,2));
     INTEGER(range)[0] = 0;
     INTEGER(range)[1] = 255;
     Rf_setAttrib(image, Rf_install("range"), range);
@@ -123,15 +123,15 @@ SEXP read_png (SEXP file_)
     {
         if (state.info_png.phys_unit == 0)
         {
-            PROTECT(asp = NEW_NUMERIC(1));
+            PROTECT(asp = Rf_allocVector(REALSXP,1));
             *REAL(asp) = (double) state.info_png.phys_y / (double) state.info_png.phys_x;
             Rf_setAttrib(image, Rf_install("asp"), asp);
             UNPROTECT(1);
         }
         else
         {
-            PROTECT(dpi = NEW_NUMERIC(2));
-            PROTECT(pixdim = NEW_NUMERIC(2));
+            PROTECT(dpi = Rf_allocVector(REALSXP,2));
+            PROTECT(pixdim = Rf_allocVector(REALSXP,2));
             REAL(dpi)[0] = (double) state.info_png.phys_x / 39.3700787402;
             REAL(dpi)[1] = (double) state.info_png.phys_y / 39.3700787402;
             REAL(pixdim)[0] = 1000.0 / (double) state.info_png.phys_x;
