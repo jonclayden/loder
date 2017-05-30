@@ -1,5 +1,10 @@
 This file documents the significant user-visible changes in each release of the `loder` R package.
 
+## loder 0.1.2
+
+- The package should now compile against versions of R prior to 3.3.0.
+- Some low-level memory protection and undefined behaviour warnings have been resolved.
+
 ## loder 0.1.1
 
 - File arguments to `readPng` and `writePng` are now passed through `path.expand`, so that paths containing a tilde (`~`) will be handled properly.
