@@ -115,7 +115,8 @@ SEXP read_png (SEXP file_)
     if (state.info_png.background_defined)
     {
         sprintf(background, "#%X%X%X", state.info_png.background_r, state.info_png.background_g, state.info_png.background_b);
-        Rf_setAttrib(image, Rf_install("background"), Rf_mkString(background));
+        Rf_setAttrib(image, Rf_install("background"), PROTECT(Rf_mkString(background)));
+        UNPROTECT(1);
     }
     
     // Set the aspect ratio or DPI/pixel size if available
@@ -138,8 +139,8 @@ SEXP read_png (SEXP file_)
             REAL(pixdim)[1] = 1000.0 / (double) state.info_png.phys_y;
             Rf_setAttrib(image, Rf_install("dpi"), dpi);
             Rf_setAttrib(image, Rf_install("pixdim"), pixdim);
-            Rf_setAttrib(image, Rf_install("pixunits"), Rf_mkString("mm"));
-            UNPROTECT(2);
+            Rf_setAttrib(image, Rf_install("pixunits"), PROTECT(Rf_mkString("mm")));
+            UNPROTECT(3);
         }
     }
     
