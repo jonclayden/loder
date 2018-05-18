@@ -30,7 +30,9 @@ attributes(image)
 
 }
 \seealso{
-The \code{readPNG} function in the venerable \code{png} package
-  offers similar functionality, but relies on an external installation of
-  libpng. By contrast, \code{loder} includes the LodePNG library.
+\code{inspectPng} to read only metadata from the file. In addition,
+  the \code{readPNG} function in the venerable \code{png} package offers
+  similar functionality to \code{readPng}, but relies on an external
+  installation of libpng. By contrast, \code{loder} includes the LodePNG
+  library.
 }

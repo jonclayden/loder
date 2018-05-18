@@ -1,3 +1,24 @@
+#' Read metadata from a PNG file
+#' 
+#' Inspect a PNG file, returning parsed metadata relating to it.
+#' 
+#' The LodePNG library is used to parse the PNG file at the specified path.
+#' The result is a string like the input, but of class \code{"lodermeta"} and
+#' with several attributes set describing the file's contents. There is a
+#' \code{print} method for these objects.
+#' 
+#' @param file A character string giving the file name to read from.
+#' @param x An object of class \code{"lodermeta"}.
+#' @param ... Additional arguments (which are ignored).
+#' @return \code{inspectPng} returns a character vector of class
+#'   \code{"lodermeta"}. The \code{print} method is called for its side-effect.
+#' 
+#' @examples
+#' path <- system.file("extdata", "pngsuite", package="loder")
+#' inspectPng(file.path(path, "basn6a08.png"))
+#' 
+#' @seealso \code{readPng} to read the pixel values.
+#' 
 #' @export
 inspectPng <- function (file)
 {
@@ -51,9 +72,11 @@ print.lodermeta <- function (x, ...)
 #' image <- readPng(file.path(path, "basn6a08.png"))
 #' attributes(image)
 #' 
-#' @seealso The \code{readPNG} function in the venerable \code{png} package
-#'   offers similar functionality, but relies on an external installation of
-#'   libpng. By contrast, \code{loder} includes the LodePNG library.
+#' @seealso \code{inspectPng} to read only metadata from the file. In addition,
+#'   the \code{readPNG} function in the venerable \code{png} package offers
+#'   similar functionality to \code{readPng}, but relies on an external
+#'   installation of libpng. By contrast, \code{loder} includes the LodePNG
+#'   library.
 #' 
 #' @export
 readPng <- function (file)
