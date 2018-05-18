@@ -137,43 +137,6 @@ SEXP read_png (SEXP file_, SEXP require_data_)
             UNPROTECT(1);
         }
         
-        // Convert text chunks
-        if (state.info_png.itext_num > 0)
-        {
-            PROTECT(text_keys = Rf_allocVector(STRSXP, state.info_png.itext_num + state.info_png.text_num));
-            PROTECT(text_vals = Rf_allocVector(STRSXP, state.info_png.itext_num + state.info_png.text_num));
-            
-            for (size_t i=0; i<state.info_png.itext_num; i++)
-            {
-                SET_STRING_ELT(text_keys, i, Rf_mkCharCE(state.info_png.itext_transkeys[i], CE_UTF8));
-                SET_STRING_ELT(text_vals, i, Rf_mkCharCE(state.info_png.itext_strings[i], CE_UTF8));
-            }
-            for (size_t i=0; i<state.info_png.text_num; i++)
-            {
-                SET_STRING_ELT(text_keys, i+state.info_png.itext_num, Rf_mkChar(state.info_png.text_keys[i]));
-                SET_STRING_ELT(text_vals, i+state.info_png.itext_num, Rf_mkChar(state.info_png.text_strings[i]));
-            }
-            
-            Rf_setAttrib(text_vals, R_NamesSymbol, text_keys);
-            Rf_setAttrib(image, Rf_install("text"), text_vals);
-            UNPROTECT(2);
-        }
-        else if (state.info_png.text_num > 0)
-        {
-            PROTECT(text_keys = Rf_allocVector(STRSXP, state.info_png.text_num));
-            PROTECT(text_vals = Rf_allocVector(STRSXP, state.info_png.text_num));
-            
-            for (size_t i=0; i<state.info_png.text_num; i++)
-            {
-                SET_STRING_ELT(text_keys, i, Rf_mkChar(state.info_png.text_keys[i]));
-                SET_STRING_ELT(text_vals, i, Rf_mkChar(state.info_png.text_strings[i]));
-            }
-            
-            Rf_setAttrib(text_vals, R_NamesSymbol, text_keys);
-            Rf_setAttrib(image, Rf_install("text"), text_vals);
-            UNPROTECT(2);
-        }
-        
         UNPROTECT(7);
     }
     
@@ -208,6 +171,43 @@ SEXP read_png (SEXP file_, SEXP require_data_)
             Rf_setAttrib(image, Rf_install("pixunits"), PROTECT(Rf_mkString("mm")));
             UNPROTECT(3);
         }
+    }
+    
+    // Convert text chunks
+    if (state.info_png.itext_num > 0)
+    {
+        PROTECT(text_keys = Rf_allocVector(STRSXP, state.info_png.itext_num + state.info_png.text_num));
+        PROTECT(text_vals = Rf_allocVector(STRSXP, state.info_png.itext_num + state.info_png.text_num));
+        
+        for (size_t i=0; i<state.info_png.itext_num; i++)
+        {
+            SET_STRING_ELT(text_keys, i, Rf_mkCharCE(state.info_png.itext_transkeys[i], CE_UTF8));
+            SET_STRING_ELT(text_vals, i, Rf_mkCharCE(state.info_png.itext_strings[i], CE_UTF8));
+        }
+        for (size_t i=0; i<state.info_png.text_num; i++)
+        {
+            SET_STRING_ELT(text_keys, i+state.info_png.itext_num, Rf_mkChar(state.info_png.text_keys[i]));
+            SET_STRING_ELT(text_vals, i+state.info_png.itext_num, Rf_mkChar(state.info_png.text_strings[i]));
+        }
+        
+        Rf_setAttrib(text_vals, R_NamesSymbol, text_keys);
+        Rf_setAttrib(image, Rf_install("text"), text_vals);
+        UNPROTECT(2);
+    }
+    else if (state.info_png.text_num > 0)
+    {
+        PROTECT(text_keys = Rf_allocVector(STRSXP, state.info_png.text_num));
+        PROTECT(text_vals = Rf_allocVector(STRSXP, state.info_png.text_num));
+        
+        for (size_t i=0; i<state.info_png.text_num; i++)
+        {
+            SET_STRING_ELT(text_keys, i, Rf_mkChar(state.info_png.text_keys[i]));
+            SET_STRING_ELT(text_vals, i, Rf_mkChar(state.info_png.text_strings[i]));
+        }
+        
+        Rf_setAttrib(text_vals, R_NamesSymbol, text_keys);
+        Rf_setAttrib(image, Rf_install("text"), text_vals);
+        UNPROTECT(2);
     }
     
     // Tidy up
