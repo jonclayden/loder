@@ -8,6 +8,13 @@ test_that("we can retrieve image metadata from PNG files", {
     expect_equal(dim(image), c(32L,32L,4L))
     expect_equal(attr(image,"range"), c(0L,255L))
     
+    metadata <- inspectPng(file.path(path, "basn6a08.png"))
+    expect_is(metadata, "lodermeta")
+    expect_identical(attr(metadata,"bitdepth"), 8L)
+    expect_equal(attr(metadata,"filesize"), 184)
+    expect_false(attr(metadata,"interlaced"))
+    expect_output(print(metadata), "file size is 184 B")
+    
     expect_equal(attr(readPng(file.path(path,"bgwn6a08.png")),"background"), "#FFFFFF")
     expect_equal(attr(readPng(file.path(path,"cdfn2c08.png")),"asp"), 4)
     
