@@ -1,3 +1,37 @@
+#' @export
+inspectPng <- function (file)
+{
+    .Call(C_read_png, path.expand(file), FALSE)
+}
+
+#' @rdname inspectPng
+#' @export
+print.lodermeta <- function (x, ...)
+{
+    size <- function (n) switch(which(n>=c(2^30,2^20,2^10,0))[1], paste(round(n/(2^30),2),"GiB"), paste(round(n/(2^20),2),"MiB"), paste(round(n/(2^10),2),"kiB"), paste(n,"B"))
+    
+    channelString <- switch(attr(x,"channels"), "grey", "grey + alpha", "RGB", "RGB + alpha")
+    textLength <- length(attr(x, "text"))
+    textNames <- names(attr(x, "text"))
+    textString <- paste0("- ", textLength, ifelse(is.null(textNames) || all(textNames==""), " unnamed", " named"), " text chunk", ifelse(textLength==1,"","s"))
+    totalBytes <- attr(x,"width") * attr(x,"height") * attr(x,"channels") * attr(x,"bitdepth") / 8
+    lines <- c(paste0("PNG file: ", as.character(x)),
+               paste0("- ", attr(x,"height"), " x ", attr(x,"width"), " pixels, ", ifelse(attr(x,"interlaced"),"interlaced, ",""), channelString, ifelse(attr(x,"palette")>0,paste(" (palette of",attr(x,"palette"),"colours)"))),
+               paste0("- ", attr(x,"bitdepth"), " bpp (uncompressed data size ", size(totalBytes), "; file size is ", size(attr(x,"filesize")), ")"))
+    
+    if (!is.null(attr(x, "background")))
+        lines <- c(lines, paste("- Background colour is", attr(x,"background")))
+    if (!is.null(attr(x, "pixdim")))
+        lines <- c(lines, paste0("- Pixel dimensions are ", signif(attr(x,"pixdim")[1],3), " x ", signif(attr(x,"pixdim")[2],3), " mm (", round(attr(x,"dpi")[1],2), " x ", round(attr(x,"dpi")[2],2), " dpi)"))
+    else if (!is.null(attr(x, "asp")))
+        lines <- c(lines, paste("- Aspect ratio is", signif(attr(x,"asp"),3), ": 1"))
+    if (textLength > 0)
+        lines <- c(lines, textString)
+    
+    cat(paste(lines, collapse="\n"))
+    cat("\n")
+}
+
 #' Read a PNG file
 #' 
 #' Read an image from a PNG file and convert the pixel data into an R array.
