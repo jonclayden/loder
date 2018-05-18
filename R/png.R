@@ -100,13 +100,14 @@ readPng <- function (file)
 #' @param file A character string giving the file name to write to.
 #' @param range An optional numeric 2-vector giving the extremes of the
 #'   intensity window. Values outside this range will be clipped.
+#' @param interlace Logical value: should the image be interlaced?
 #' @return The \code{file} argument, invisibly.
 #' 
 #' @seealso \code{\link{readPng}} for reading images.
 #' 
 #' @export
-writePng <- function (image, file, range = NULL)
+writePng <- function (image, file, range = NULL, interlace = FALSE)
 {
-    .Call(C_write_png, image, path.expand(file), range)
+    .Call(C_write_png, image, path.expand(file), range, interlace)
     invisible(file)
 }

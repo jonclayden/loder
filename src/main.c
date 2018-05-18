@@ -218,8 +218,9 @@ SEXP read_png (SEXP file_, SEXP require_data_)
     return image;
 }
 
-SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
+SEXP write_png (SEXP image_, SEXP file_, SEXP range_, SEXP interlace_)
 {
+    const Rboolean interlace = (Rf_asLogical(interlace_) == TRUE);
     unsigned width, height, channels;
     
     // Read the image dimensions from the source object
@@ -376,6 +377,8 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
         state.info_png.phys_y = (unsigned) round(*REAL(asp) * 1000.0);
     }
     
+    state.info_png.interlace_method = interlace;
+    
     // Encode the data in memory
     const char *filename = CHAR(STRING_ELT(file_, 0));
     error = lodepng_encode(&png, &png_size, data, width, height, &state);
@@ -403,7 +406,7 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_)
 
 static R_CallMethodDef callMethods[] = {
     { "read_png",   (DL_FUNC) &read_png,    2 },
-    { "write_png",  (DL_FUNC) &write_png,   3 },
+    { "write_png",  (DL_FUNC) &write_png,   4 },
     { NULL, NULL, 0 }
 };
 
