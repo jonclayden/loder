@@ -11,6 +11,10 @@ test_that("we can write data and metadata to PNG format", {
     expect_equal(image[16,16,], c(32L,255L,4L,123L))
     image <- readPng(writePng(images[[1]],temp,range=c(0,127)))
     expect_equal(image[16,16,], c(64L,255L,8L,247L))
+    image <- readPng(writePng(images[[1]]==255L,temp))
+    expect_equal(image[16,16,], c(0L,1L,0L,0L))
+    image <- readPng(writePng(structure(images[[1]],range=NULL),temp))
+    expect_equal(image[16,16,], c(32L,255L,4L,123L))
     
     image <- readPng(writePng(images[[2]],temp))
     expect_equal(attr(image,"background"), "#FFFFFF")
