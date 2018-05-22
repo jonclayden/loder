@@ -377,6 +377,30 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_, SEXP interlace_)
         state.info_png.phys_y = (unsigned) round(*REAL(asp) * 1000.0);
     }
     
+    // Check for a text attribute
+    SEXP text_vals = Rf_getAttrib(image_, Rf_install("text"));
+    if (!Rf_isNull(text_vals))
+    {
+        const int text_length = Rf_length(text_vals);
+        SEXP text_keys = Rf_getAttrib(text_vals, R_NamesSymbol);
+        const Rboolean have_keys = !Rf_isNull(text_keys);
+        Rboolean warned = FALSE;
+        for (int i=0; i<text_length; i++)
+        {
+            SEXP string = STRING_ELT(text_vals, i);
+            const cetype_t encoding = Rf_getCharCE(string);
+            if (encoding == CE_NATIVE)
+                lodepng_add_text(&state.info_png, have_keys ? CHAR(STRING_ELT(text_keys,i)) : "Comment", CHAR(string));
+            else if (encoding == CE_UTF8)
+                lodepng_add_itext(&state.info_png, "Comment", "", have_keys ? CHAR(STRING_ELT(text_keys,i)) : "Comment", CHAR(string));
+            else if (!warned)
+            {
+                Rf_warning("Text element with non-UTF-8 encoding ignored");
+                warned = TRUE;
+            }
+        }
+    }
+    
     state.info_png.interlace_method = interlace;
     
     // Encode the data in memory

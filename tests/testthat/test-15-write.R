@@ -2,7 +2,7 @@ context("Writing image data and metadata to PNG format")
 
 test_that("we can write data and metadata to PNG format", {
     path <- system.file("extdata", "pngsuite", package="loder")
-    images <- lapply(c("basn6a08.png","bgwn6a08.png","cdfn2c08.png","cdun2c08.png"), function(file) readPng(file.path(path,file)))
+    images <- lapply(c("basn6a08.png","bgwn6a08.png","cdfn2c08.png","cdun2c08.png","ct1n0g04.png","ctgn0g04.png"), function(file) readPng(file.path(path,file)))
     temp <- tempfile()
     
     image <- readPng(writePng(images[[1]],temp))
@@ -24,4 +24,9 @@ test_that("we can write data and metadata to PNG format", {
     
     image <- readPng(writePng(images[[4]],temp))
     expect_equal(attr(image,"dpi"), c(25.4,25.4))
+    
+    image <- readPng(writePng(images[[5]],temp))
+    expect_equal(attr(image,"text"), attr(images[[5]],"text"))
+    image <- readPng(writePng(images[[6]],temp))
+    expect_equal(sort(attr(image,"text")), sort(attr(images[[6]],"text")))
 })
