@@ -4,7 +4,7 @@
 \alias{writePng}
 \title{Write a PNG file}
 \usage{
-writePng(image, file, range = NULL, interlace = FALSE)
+writePng(image, file, range = NULL, compression = 4L, interlace = FALSE)
 }
 \arguments{
 \item{image}{An array containing the pixel data.}
@@ -13,6 +13,9 @@ writePng(image, file, range = NULL, interlace = FALSE)
 
 \item{range}{An optional numeric 2-vector giving the extremes of the
 intensity window. Values outside this range will be clipped.}
+
+\item{compression}{Compression level, an integer value between 0 (no
+compression, fastest) and 6 (maximum compression, slowest).}
 
 \item{interlace}{Logical value: should the image be interlaced?}
 }

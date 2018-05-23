@@ -6,6 +6,17 @@
 
 #include "lodepng.h"
 
+// Predefined compression levels
+// Elements are block type, use LZ77, window size, minimum LZ77 length, threshold length to stop searching, use lazy matching
+// Last three elements are for custom hooks and are not used here
+const LodePNGCompressSettings level0 = { 0, 0,  2048, 3,  16, 0, 0, 0, 0 };  // No compression
+const LodePNGCompressSettings level1 = { 1, 1,   256, 3,  32, 1, 0, 0, 0 };  // Fixed Huffman tree, small window
+const LodePNGCompressSettings level2 = { 1, 1,  1024, 3,  64, 1, 0, 0, 0 };  // Fixed Huffman tree, medium window
+const LodePNGCompressSettings level3 = { 2, 1,  1024, 3,  64, 1, 0, 0, 0 };  // Dynamic tree, medium window
+const LodePNGCompressSettings level4 = { 2, 1,  2048, 3, 128, 1, 0, 0, 0 };  // LodePNG defaults
+const LodePNGCompressSettings level5 = { 2, 1,  8192, 3, 128, 1, 0, 0, 0 };  // Dynamic tree, large window
+const LodePNGCompressSettings level6 = { 2, 1, 32768, 3, 258, 1, 0, 0, 0 };  // Maximum compression
+
 SEXP read_png (SEXP file_, SEXP require_data_)
 {
     const Rboolean require_data = (Rf_asLogical(require_data_) == TRUE);
@@ -218,8 +229,9 @@ SEXP read_png (SEXP file_, SEXP require_data_)
     return image;
 }
 
-SEXP write_png (SEXP image_, SEXP file_, SEXP range_, SEXP interlace_)
+SEXP write_png (SEXP image_, SEXP file_, SEXP range_, SEXP compression_level_, SEXP interlace_)
 {
+    const int compression_level = Rf_asInteger(compression_level_);
     const Rboolean interlace = (Rf_asLogical(interlace_) == TRUE);
     unsigned width, height, channels;
     
@@ -326,21 +338,10 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_, SEXP interlace_)
     // Set the final data representation
     switch (channels)
     {
-        case 1:
-        state.info_raw.colortype = LCT_GREY;
-        break;
-        
-        case 2:
-        state.info_raw.colortype = LCT_GREY_ALPHA;
-        break;
-        
-        case 3:
-        state.info_raw.colortype = LCT_RGB;
-        break;
-        
-        case 4:
-        state.info_raw.colortype = LCT_RGBA;
-        break;
+        case 1: state.info_raw.colortype = LCT_GREY;        break;
+        case 2: state.info_raw.colortype = LCT_GREY_ALPHA;  break;
+        case 3: state.info_raw.colortype = LCT_RGB;         break;
+        case 4: state.info_raw.colortype = LCT_RGBA;        break;
     }
     
     // Check for a background attribute and attach it to the state if present
@@ -403,6 +404,17 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_, SEXP interlace_)
     
     state.info_png.interlace_method = interlace;
     
+    switch (compression_level)
+    {
+        case 0: state.encoder.zlibsettings = level0; break;
+        case 1: state.encoder.zlibsettings = level1; break;
+        case 2: state.encoder.zlibsettings = level2; break;
+        case 3: state.encoder.zlibsettings = level3; break;
+        case 4: state.encoder.zlibsettings = level4; break;
+        case 5: state.encoder.zlibsettings = level5; break;
+        case 6: state.encoder.zlibsettings = level6; break;
+    }
+    
     // Encode the data in memory
     const char *filename = CHAR(STRING_ELT(file_, 0));
     error = lodepng_encode(&png, &png_size, data, width, height, &state);
@@ -430,7 +442,7 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_, SEXP interlace_)
 
 static R_CallMethodDef callMethods[] = {
     { "read_png",   (DL_FUNC) &read_png,    2 },
-    { "write_png",  (DL_FUNC) &write_png,   4 },
+    { "write_png",  (DL_FUNC) &write_png,   5 },
     { NULL, NULL, 0 }
 };
 

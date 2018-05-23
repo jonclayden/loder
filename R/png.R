@@ -100,14 +100,16 @@ readPng <- function (file)
 #' @param file A character string giving the file name to write to.
 #' @param range An optional numeric 2-vector giving the extremes of the
 #'   intensity window. Values outside this range will be clipped.
+#' @param compression Compression level, an integer value between 0 (no
+#'   compression, fastest) and 6 (maximum compression, slowest).
 #' @param interlace Logical value: should the image be interlaced?
 #' @return The \code{file} argument, invisibly.
 #' 
 #' @seealso \code{\link{readPng}} for reading images.
 #' 
 #' @export
-writePng <- function (image, file, range = NULL, interlace = FALSE)
+writePng <- function (image, file, range = NULL, compression = 4L, interlace = FALSE)
 {
-    .Call(C_write_png, image, path.expand(file), range, interlace)
+    .Call(C_write_png, image, path.expand(file), range, as.integer(compression), interlace)
     invisible(file)
 }
