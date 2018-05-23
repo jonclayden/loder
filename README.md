@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/jonclayden/loder.svg?branch=master)](https://travis-ci.org/jonclayden/loder) [![codecov](https://codecov.io/gh/jonclayden/loder/branch/master/graph/badge.svg)](https://codecov.io/gh/jonclayden/loder)
+
 # Simple, dependency-free access to PNG images
 
 The `loder` package provides functions for easily reading from PNG image files and writing to them. It functions in a very similar way to Simon Urbanek's venerable [`png` package](https://github.com/s-u/png), but unlike that package it does not require external `libpng` and `zlib` libraries to be installed. Instead, `loder` includes Lode Vandevenne's compact LodePNG library, which provides self-contained PNG read and write functionality.

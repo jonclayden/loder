@@ -1,4 +1,5 @@
-# Standard .travis.yml for R projects
-
 language: r
+
+after_success:
+  - Rscript -e 'covr::codecov()'
 

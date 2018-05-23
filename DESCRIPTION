@@ -4,7 +4,7 @@ Date: 2017-05-30
 Title: Dependency-Free Access to PNG Image Files
 Authors@R: c(person("Jon", "Clayden", email="code@clayden.org", role=c("aut","cre")),
              person("Lode", "Vandevenne", role="aut"))
-Suggests: testthat
+Suggests: testthat, covr
 Description: Read and write access to PNG image files using the LodePNG
     library. The package has no external dependencies.
 License: BSD_3_clause + file LICENCE
