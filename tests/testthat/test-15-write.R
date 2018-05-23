@@ -30,3 +30,18 @@ test_that("we can write data and metadata to PNG format", {
     image <- readPng(writePng(images[[6]],temp))
     expect_equal(sort(attr(image,"text")), sort(attr(images[[6]],"text")))
 })
+
+test_that("we can write images with various compression schemes", {
+    path <- system.file("extdata", "pngsuite", package="loder")
+    image <- readPng(file.path(path, "z00n2c08.png"))
+    temp <- tempfile()
+    
+    meta0 <- inspectPng(writePng(image, temp, compression=0L))
+    meta1 <- inspectPng(writePng(image, temp, compression=1L))
+    meta4 <- inspectPng(writePng(image, temp, compression=4L))
+    meta6 <- inspectPng(writePng(image, temp, compression=6L))
+    
+    expect_gte(attr(meta0,"filesize"), attr(meta1,"filesize"))
+    expect_gte(attr(meta1,"filesize"), attr(meta4,"filesize"))
+    expect_gte(attr(meta4,"filesize"), attr(meta6,"filesize"))
+})
