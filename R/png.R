@@ -65,11 +65,15 @@ print.lodermeta <- function (x, ...)
 #' the result if this information is stored with the image.
 #' 
 #' @param file A character string giving the file name to read from.
-#' @return An integer-mode array of class \code{"loder"}.
+#' @param x An object of class \code{"loder"}.
+#' @param ... Additional arguments (which are ignored).
+#' @return \code{readPng} returns an integer-mode array of class
+#'   \code{"loder"}. The \code{print} method is called for its side-effect.
 #' 
 #' @examples
 #' path <- system.file("extdata", "pngsuite", package="loder")
 #' image <- readPng(file.path(path, "basn6a08.png"))
+#' print(image)
 #' attributes(image)
 #' 
 #' @seealso \code{inspectPng} to read only metadata from the file. In addition,
@@ -82,6 +86,14 @@ print.lodermeta <- function (x, ...)
 readPng <- function (file)
 {
     .Call(C_read_png, path.expand(file), TRUE)
+}
+
+#' @rdname readPng
+#' @export
+print.loder <- function (x, ...)
+{
+    dim <- dim(x)
+    cat(paste0("PNG image array: ", dim[1], " x ", dim[2], " pixels, ", switch(dim[3], "grey", "grey + alpha", "RGB", "RGB + alpha"), "\n"))
 }
 
 #' Write a PNG file

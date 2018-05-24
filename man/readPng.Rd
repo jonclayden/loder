@@ -2,15 +2,23 @@
 % Please edit documentation in R/png.R
 \name{readPng}
 \alias{readPng}
+\alias{print.loder}
 \title{Read a PNG file}
 \usage{
 readPng(file)
+
+\method{print}{loder}(x, ...)
 }
 \arguments{
 \item{file}{A character string giving the file name to read from.}
+
+\item{x}{An object of class \code{"loder"}.}
+
+\item{...}{Additional arguments (which are ignored).}
 }
 \value{
-An integer-mode array of class \code{"loder"}.
+\code{readPng} returns an integer-mode array of class
+  \code{"loder"}. The \code{print} method is called for its side-effect.
 }
 \description{
 Read an image from a PNG file and convert the pixel data into an R array.
@@ -26,6 +34,7 @@ the result if this information is stored with the image.
 \examples{
 path <- system.file("extdata", "pngsuite", package="loder")
 image <- readPng(file.path(path, "basn6a08.png"))
+print(image)
 attributes(image)
 
 }

@@ -3,6 +3,7 @@ context("Reading image data from different PNG subformats")
 test_that("we can read from PNG images in different subformats", {
     path <- system.file("extdata", "pngsuite", package="loder")
     
+    expect_output(print(readPng(file.path(path,"basn0g01.png"))), "PNG image array: 32 x 32 pixels, grey")
     expect_equal(readPng(file.path(path,"basn0g01.png"))[16,16,], 255L)
     expect_equal(readPng(file.path(path,"basn0g02.png"))[16,16,], 170L)
     expect_equal(readPng(file.path(path,"basn0g04.png"))[16,16,], 102L)
