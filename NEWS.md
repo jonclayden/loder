@@ -1,5 +1,13 @@
 This file documents the significant user-visible changes in each release of the `loder` R package.
 
+## loder 0.2.0
+
+- The new `inspectPng` function can be used to obtain details of a PNG file without obtaining the pixel data.
+- There is now a `print` method for objects of class "loder".
+- The `writePng` function now supports writing interlaced files, and offers different compression levels.
+- Text chunks are now read from and written to PNG files.
+- The LodePNG library has been updated.
+
 ## loder 0.1.2
 
 - The package should now compile against versions of R prior to 3.3.0.
