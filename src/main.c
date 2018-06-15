@@ -388,11 +388,13 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_, SEXP compression_level_, S
         Rboolean warned = FALSE;
         for (int i=0; i<text_length; i++)
         {
-            SEXP string = STRING_ELT(text_vals, i);
-            const cetype_t encoding = Rf_getCharCE(string);
-            if (encoding == CE_NATIVE)
+            const SEXP string = STRING_ELT(text_vals, i);
+            const cetype_t key_encoding = have_keys ? Rf_getCharCE(STRING_ELT(text_keys,i)) : CE_NATIVE;
+            const cetype_t string_encoding = Rf_getCharCE(string);
+            
+            if (key_encoding == CE_NATIVE && string_encoding == CE_NATIVE)
                 lodepng_add_text(&state.info_png, have_keys ? CHAR(STRING_ELT(text_keys,i)) : "Comment", CHAR(string));
-            else if (encoding == CE_UTF8)
+            else if (key_encoding == CE_UTF8 || string_encoding == CE_UTF8)
                 lodepng_add_itext(&state.info_png, "Comment", "", have_keys ? CHAR(STRING_ELT(text_keys,i)) : "Comment", CHAR(string));
             else if (!warned)
             {
