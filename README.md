@@ -56,7 +56,17 @@ The `display` function from the [`mmand` package](https://github.com/jonclayden/
 mmand::display(image)
 ```
 
-Image data can be written back to a file using the `writePng` function. The theoretical numerical range of the pixel intensities (i.e., the black and white points) can be set using the `range` attribute or the argument of the same name.
+Metadata alone may be read using the `inspectPng` function, which also gives information about the compression level achieved:
+
+```r
+inspectPng(path)
+# PNG file: [...]/loder/extdata/pngsuite/cdfn2c08.png
+# - 32 x 8 pixels, RGB
+# - 8 bpp (uncompressed data size 768 B; file size is 404 B)
+# - Aspect ratio is 4 : 1
+```
+
+Image data can be written back to a file using the `writePng` function. The theoretical numerical range of the pixel intensities (i.e., the black and white points) can be set using the `range` attribute or an argument of the same name.
 
 ```r
 writePng(image, tempfile(), range=c(0,200))
