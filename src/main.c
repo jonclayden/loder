@@ -229,7 +229,7 @@ SEXP read_png (SEXP file_, SEXP require_data_)
     return image;
 }
 
-SEXP write_png (SEXP image_, SEXP file_, SEXP range_, SEXP compression_level_, SEXP interlace_)
+SEXP write_png (SEXP image_, SEXP file_, SEXP compression_level_, SEXP interlace_)
 {
     const int compression_level = Rf_asInteger(compression_level_);
     const Rboolean interlace = (Rf_asLogical(interlace_) == TRUE);
@@ -260,14 +260,13 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_, SEXP compression_level_, S
     Rboolean add_alpha = FALSE;
     R_len_t length = (R_len_t) width * height * channels;
     
-    // Check for a range argument or attribute, or calculate range from data
-    SEXP range;
-    if (Rf_isNull(range_))
-        range_ = Rf_getAttrib(image_, Rf_install("range"));
-    if (!Rf_isNull(range_) && Rf_length(range_) == 2)
+    // Check for a range attribute, or calculate from data
+    SEXP range = Rf_getAttrib(image_, Rf_install("range"));
+    if (!Rf_isNull(range) && Rf_length(range) == 2)
     {
-        PROTECT(range = Rf_coerceVector(range_, REALSXP));
-        double *range_ptr = REAL(range);
+        SEXP dbl_range;
+        PROTECT(dbl_range = Rf_coerceVector(range, REALSXP));
+        double *range_ptr = REAL(dbl_range);
         min = (range_ptr[0] < range_ptr[1] ? range_ptr[0] : range_ptr[1]);
         max = (range_ptr[0] > range_ptr[1] ? range_ptr[0] : range_ptr[1]);
         UNPROTECT(1);
@@ -444,7 +443,7 @@ SEXP write_png (SEXP image_, SEXP file_, SEXP range_, SEXP compression_level_, S
 
 static R_CallMethodDef callMethods[] = {
     { "read_png",   (DL_FUNC) &read_png,    2 },
-    { "write_png",  (DL_FUNC) &write_png,   5 },
+    { "write_png",  (DL_FUNC) &write_png,   4 },
     { NULL, NULL, 0 }
 };
 

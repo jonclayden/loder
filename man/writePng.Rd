@@ -4,15 +4,15 @@
 \alias{writePng}
 \title{Write a PNG file}
 \usage{
-writePng(image, file, range = NULL, compression = 4L, interlace = FALSE)
+writePng(image, file, ..., compression = 4L, interlace = FALSE)
 }
 \arguments{
 \item{image}{An array containing the pixel data.}
 
 \item{file}{A character string giving the file name to write to.}
 
-\item{range}{An optional numeric 2-vector giving the extremes of the
-intensity window. Values outside this range will be clipped.}
+\item{...}{Additional metadata elements, which override equivalently named
+attributes of \code{image}. See Details.}
 
 \item{compression}{Compression level, an integer value between 0 (no
 compression, fastest) and 6 (maximum compression, slowest).}
@@ -27,12 +27,29 @@ Write a numeric or logical array to a PNG file.
 }
 \details{
 The LodePNG library is used to write a PNG file at the specified path. The
-source data should be of logical, integer or numeric mode. The allowable
-range of the data will be taken from the \code{range} argument if it is
-specified, or from a \code{range} attribute, if there is one, and otherwise
-it is calculated from the data. Background colour, spatial resolution and/or
-aspect ratio metadata are written to the file if the corresponding
-attributes exist. LodePNG will choose the bit depth of the final image.
+source data should be of logical, integer or numeric mode. Metadata
+attributes of the image will be stored where applicable, and may be
+overwritten using named arguments. LodePNG will choose the bit depth of the
+final image.
+
+Attributes which are currently stored are as follows. In each case an
+argument of the appropriate name can be used to override a value stored with
+the image.
+\describe{
+  \item{\code{range}}{A numeric 2-vector giving the extremes of the
+    intensity window, i.e. the black and white points. Values outside this
+    range will be clipped.}
+  \item{\code{background}}{A hexadecimal colour string giving the background
+    colour.}
+  \item{\code{dpi}}{A numeric 2-vector giving the dots-per-inch resolution
+    of the image in each dimension.}
+  \item{\code{asp}}{The aspect ratio of the image. Ignored if \code{dpi} is
+    present and valid.}
+  \item{\code{text}}{A character vector (possibly named) of text strings to
+    store in the file. Only ASCII and UTF-8 encoded strings are currently
+    supported.}
+}
+Dimensions are always taken from the image, and cannot be modified here.
 }
 \seealso{
 \code{\link{readPng}} for reading images.
