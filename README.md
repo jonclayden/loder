@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/jonclayden/loder.svg?branch=master)](https://travis-ci.org/jonclayden/loder) [![codecov](https://codecov.io/gh/jonclayden/loder/branch/master/graph/badge.svg)](https://codecov.io/gh/jonclayden/loder)
+[![Build Status](https://travis-ci.org/jonclayden/loder.svg?branch=master)](https://travis-ci.org/jonclayden/loder) [![Build status](https://ci.appveyor.com/api/projects/status/f8535c6s1f6alo7a?svg=true)](https://ci.appveyor.com/project/jonclayden/loder) [![codecov](https://codecov.io/gh/jonclayden/loder/branch/master/graph/badge.svg)](https://codecov.io/gh/jonclayden/loder)
 
 # Simple, dependency-free access to PNG images
 
