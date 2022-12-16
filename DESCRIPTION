@@ -1,6 +1,6 @@
 Package: loder
-Version: 0.2.0
-Date: 2018-06-15
+Version: 0.2.1
+Date: 2022-12-16
 Title: Dependency-Free Access to PNG Image Files
 Authors@R: c(person("Jon", "Clayden", email="code@clayden.org", role=c("aut","cre")),
              person("Lode", "Vandevenne", role="aut"))

@@ -1,5 +1,11 @@
 This file documents the significant user-visible changes in each release of the `loder` R package.
 
+## loder 0.2.1
+
+- The LodePNG library has been updated to version 20221108.
+- The package no longer calls the `sprintf` C function, which produces a warning on some platforms.
+- Other small warnings and notes have been addressed.
+
 ## loder 0.2.0
 
 - The new `inspectPng` function can be used to obtain details of a PNG file without obtaining the pixel data.
