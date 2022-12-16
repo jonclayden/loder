@@ -157,7 +157,7 @@ SEXP read_png (SEXP file_, SEXP require_data_)
     // If a background colour is defined in the file, convert it to a hex code and store it
     if (state.info_png.background_defined)
     {
-        sprintf(background, "#%X%X%X", state.info_png.background_r, state.info_png.background_g, state.info_png.background_b);
+        snprintf(background, 8, "#%X%X%X", state.info_png.background_r, state.info_png.background_g, state.info_png.background_b);
         Rf_setAttrib(image, Rf_install("background"), PROTECT(Rf_mkString(background)));
         UNPROTECT(1);
     }
