@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/jonclayden/loder.svg?branch=master)](https://travis-ci.org/jonclayden/loder) [![Build status](https://ci.appveyor.com/api/projects/status/f8535c6s1f6alo7a?svg=true)](https://ci.appveyor.com/project/jonclayden/loder) [![codecov](https://codecov.io/gh/jonclayden/loder/branch/master/graph/badge.svg)](https://codecov.io/gh/jonclayden/loder)
+[![CI](https://github.com/jonclayden/loder/actions/workflows/ci.yaml/badge.svg)](https://github.com/jonclayden/loder/actions/workflows/ci.yaml) [![codecov](https://codecov.io/gh/jonclayden/loder/branch/master/graph/badge.svg)](https://app.codecov.io/gh/jonclayden/loder) [![status](https://tinyverse.netlify.com/badge/loder)](https://CRAN.R-project.org/package=loder)
 
 # Simple, dependency-free access to PNG images
 
