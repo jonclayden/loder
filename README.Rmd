@@ -1,4 +1,7 @@
-
+```{r, echo=FALSE}
+options(mmand.display.newDevice=FALSE)
+knitr::opts_chunk$set(collapse=TRUE, fig.path="tools/figures/", fig.dim=c(1,1), dpi=128)
+```
 
 [![CRAN version](http://www.r-pkg.org/badges/version/loder)](https://cran.r-project.org/package=loder) [![CI](https://github.com/jonclayden/loder/actions/workflows/ci.yaml/badge.svg)](https://github.com/jonclayden/loder/actions/workflows/ci.yaml) [![codecov](https://codecov.io/gh/jonclayden/loder/branch/master/graph/badge.svg)](https://app.codecov.io/gh/jonclayden/loder) [![status](https://tinyverse.netlify.com/badge/loder)](https://cran.r-project.org/package=loder)
 
@@ -10,15 +13,13 @@ The `loder` package provides functions for easily reading from PNG image files a
 
 The package may be installed from [CRAN](https://cran.r-project.org/package=loder) using the standard command
 
-
-```r
+```{r, eval=FALSE}
 install.packages("loder")
 ```
 
 Alternatively, the latest development version can be installed directly from GitHub using the `remotes` package, viz.
 
-
-```r
+```{r, eval=FALSE}
 ## install.packages("remotes")
 remotes::install_github("jonclayden/loder")
 ```
@@ -27,59 +28,36 @@ remotes::install_github("jonclayden/loder")
 
 The `readPng` function is used to read PNG images. It returns an array of class `loder` with three dimensions representing rows, columns and channels. Greyscale images have one channel, grey/alpha images have two, red/green/blue (RGB) images have three, and red/green/blue/alpha images have four.
 
-
-```r
+```{r}
 library(loder)
 path <- system.file("extdata", "pngsuite", "basn6a08.png", package="loder")
 image <- readPng(path)
 dim(image)
-## [1] 32 32  4
 ```
 
 Metadata including background colour, aspect ratio and pixel size or image resolution are available through attributes, if they are stored in the file.
 
-
-```r
+```{r}
 path <- system.file("extdata", "pngsuite", "cdfn2c08.png", package="loder")
 attributes(readPng(path))
-## $dim
-## [1] 32  8  3
-## 
-## $class
-## [1] "loder" "array"
-## 
-## $range
-## [1]   0 255
-## 
-## $asp
-## [1] 4
 ```
 
 The `display` function from the [`mmand` package](https://github.com/jonclayden/mmand) respects these attributes, and can be used to view the image on an R graphics device.
 
-
-```r
+```{r}
 ## install.packages("mmand")
 mmand::display(image)
 ```
 
-![plot of chunk unnamed-chunk-6](tools/figures/unnamed-chunk-6-1.png)
-
 Metadata alone may be read using the `inspectPng` function, which also gives information about the compression level achieved:
 
-
-```r
+```{r}
 inspectPng(path)
-## PNG file: /opt/homebrew/lib/R/4.2/site-library/loder/extdata/pngsuite/cdfn2c08.png
-## - 32 x 8 pixels, RGB
-## - 8 bpp (uncompressed data size 768 B; file size is 404 B)
-## - Aspect ratio is 4 : 1
 ```
 
 Image data can be written back to a file using the `writePng` function. The theoretical numerical range of the pixel intensities (i.e., the black and white points) can be set using the `range` attribute or an argument of the same name.
 
-
-```r
+```{r}
 writePng(image, tempfile(), range=c(0,200))
 ```
 
