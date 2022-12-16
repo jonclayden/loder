@@ -65,6 +65,9 @@ SEXP read_png (SEXP file_, SEXP require_data_)
         case LCT_RGBA:
         channels = 4;
         break;
+        
+        default:
+        Rf_error("Unexpected colour type");
     }
     
     // Allocate memory for the final image
